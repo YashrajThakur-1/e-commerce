@@ -19,7 +19,7 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cors({
     origin: "*",
     methods: ["POST", "GET", "PATCH", "PUT", "DELETE"],
-  })
+  }))
 
 // Define the directory for serving static files (such as images)
 app.use(express.static(path.join(__dirname, "public")));
