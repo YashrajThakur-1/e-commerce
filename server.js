@@ -16,7 +16,10 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 
 // CORS policy setup to allow requests from any origin
-app.use(cors());
+app.use(cors({
+    origin: "*",
+    methods: ["POST", "GET", "PATCH", "PUT", "DELETE"],
+  })
 
 // Define the directory for serving static files (such as images)
 app.use(express.static(path.join(__dirname, "public")));
