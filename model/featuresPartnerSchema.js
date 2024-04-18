@@ -19,25 +19,22 @@ const fetaureSchema = new mongoose.Schema({
   deliveryType: {
     type: String,
     enum: ["express", "free"],
+
     required: true,
   },
   time: {
     type: Date,
     default: Date.now,
   },
-  foodtypes: {
-    type: [
-      {
-        type: String,
-        enum: [
-          "Chinese",
-          "Italian",
-          "Mexican",
-          "Indian",
-          "Japanese",
-          "SouthIndian",
-        ],
-      },
+  foodtype: {
+    type: [String], // Use array of strings
+    enum: [
+      "Chinese",
+      "Italian",
+      "Mexican",
+      "Indian",
+      "Japanese",
+      "SouthIndian",
     ],
     required: true,
   },
