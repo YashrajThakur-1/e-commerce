@@ -17,7 +17,7 @@ router.post("/signup", async (req, res) => {
     res.status(200).json({
       data: savedUser,
       msg: "User Registered Successfully",
-      token: token,
+      
     });
   } catch (error) {
     console.error("Error on saving data", error);

@@ -25,15 +25,19 @@ const fetaureSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
-  foodtype: {
-    type: String,
-    enum: [
-      "Chinese",
-      "Italian",
-      "Mexican",
-      "Indian",
-      "Japanese",
-      "SouthIndian",
+  foodtypes: {
+    type: [
+      {
+        type: String,
+        enum: [
+          "Chinese",
+          "Italian",
+          "Mexican",
+          "Indian",
+          "Japanese",
+          "SouthIndian",
+        ],
+      },
     ],
     required: true,
   },
