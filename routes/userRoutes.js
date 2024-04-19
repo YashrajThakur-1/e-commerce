@@ -42,6 +42,7 @@ router.post("/signup", validate(signupSchema), async (req, res) => {
         .json({ message: "Email already exists", status: false });
     }
     const savedUser = await data.save();
+    console.log("USer Registererd Successfull");
     res
       .status(200)
       .json({ message: "User Registered Successfully", status: true });
