@@ -51,9 +51,9 @@ router.post("/add-featurePartner", upload, async (req, res) => {
 // Route to retrieve all feature partners
 router.get("/get-featurepartner", async (req, res) => {
   try {
-    const page = parseInt(req.query.page) || 1; // Default to page 1 if not provided
-    const limit = parseInt(req.query.limit) || 3; // Default to limit of 10 if not provided
-
+    const page = parseInt(req.body.page) || 1; // Default to page 1 if not provided
+    const limit = parseInt(req.body.limit) || 10; // Default to limit of 3 if not provided
+    console.log("Page:", page, "Limit:", limit);
     const startIndex = (page - 1) * limit;
     const endIndex = page * limit;
 

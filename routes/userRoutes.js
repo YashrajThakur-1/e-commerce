@@ -1,5 +1,6 @@
 const express = require("express");
 const User = require("../model/userSchema");
+const axios = require("axios");
 const {
   jsonAuthMiddleware,
   generateToken,
@@ -17,7 +18,6 @@ router.post("/signup", async (req, res) => {
     res.status(200).json({
       data: savedUser,
       msg: "User Registered Successfully",
-      
     });
   } catch (error) {
     console.error("Error on saving data", error);
@@ -117,6 +117,22 @@ router.post("/reset-password", async (req, res) => {
     res.status(200).json({ msg: "Password reset successfully" });
   } catch (error) {
     console.error("Error on reset password", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+//For getting User
+
+router.get("/profile", jsonAuthMiddleware, async (req, res) => {
+  try {
+    const userId = req.user.userData._id;
+    // console.log(req.user);
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+    res.status(200).json({ data: user });
+  } catch (error) {
+    console.error("Error retrieving user profile:", error);
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
