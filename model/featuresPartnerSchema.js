@@ -24,10 +24,10 @@ const fetaureSchema = new mongoose.Schema({
   },
   time: {
     type: Date,
-    default: Date.now,
+    required: true,
   },
   foodtype: {
-    type: [String], // Use array of strings
+    type: [String],
     enum: [
       "Chinese",
       "Italian",
