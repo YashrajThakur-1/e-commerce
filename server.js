@@ -10,7 +10,7 @@ const port = process.env.PORT || 9000; // Use port from environment variables or
 
 const userRoutes = require("./routes/userRoutes");
 const featureRoutes = require("./routes/FeaturesRoutes.js");
-
+const restaurantRoutes = require("./routes/RestaurantRoutes.js");
 // Middleware to parse JSON Bodies
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -29,6 +29,7 @@ app.use(express.static(path.join(__dirname, "public")));
 // Routes
 app.use("/user", userRoutes);
 app.use("/auth", featureRoutes);
+app.use("/res/api", restaurantRoutes);
 
 app.listen(port, () => {
   console.log(`Server running on port http://localhost:${port}`);
