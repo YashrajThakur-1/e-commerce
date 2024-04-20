@@ -85,9 +85,10 @@ router.post("/get-featurepartner", async (req, res) => {
     const { page, limit } = req.body;
     const parsedPage = parseInt(page) || 1; // Default to page 1 if not provided
     const parsedLimit = parseInt(limit) || 10; // Default to limit of 10 if not provided
-    console.log("Page:", parsedPage, "Limit:", parsedLimit);
+
     const startIndex = (parsedPage - 1) * parsedLimit;
-    const endIndex = parsedPage * parsedLimit;
+    console.log("Start Index:", startIndex);
+    console.log("Limit:", parsedLimit);
 
     const data = await Feature.find()
       .limit(parsedLimit)
@@ -98,7 +99,7 @@ router.post("/get-featurepartner", async (req, res) => {
 
     const pagination = {};
 
-    if (endIndex < totalCount) {
+    if (startIndex + parsedLimit < totalCount) {
       pagination.next = {
         page: parsedPage + 1,
         limit: parsedLimit,
@@ -112,11 +113,14 @@ router.post("/get-featurepartner", async (req, res) => {
       };
     }
 
-    res.status(200).json({ data: data, pagination: pagination });
+    res
+      .status(200)
+      .json({ data: data, pagination: pagination, totalCount: totalCount });
   } catch (error) {
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
+
 router.delete("/remove-featurepartner/:id", async (req, res) => {
   try {
     const userId = req.params.id;
