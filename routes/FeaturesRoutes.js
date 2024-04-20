@@ -48,7 +48,8 @@ router.post("/add-featurePartner", upload, async (req, res) => {
     }
 
     // Extract data from request body
-    const { partnerName, location, rating, deliveryType, foodtype } = req.body;
+    const { partnerName, location, rating, deliveryType, foodtype, time } =
+      req.body;
 
     // Get the filename of the uploaded image
     const image = req.file.filename;
@@ -60,7 +61,7 @@ router.post("/add-featurePartner", upload, async (req, res) => {
       location,
       rating,
       deliveryType,
-      time: Date.now(), // Assuming 'time' field is required in your model
+      time, // Assuming 'time' field is required in your model
       foodtype,
     });
 
