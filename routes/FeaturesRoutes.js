@@ -68,7 +68,9 @@ router.post("/add-featurePartner", upload, async (req, res) => {
     const addFeature = await newFeature.save();
 
     // Return success response with the added feature data
-    res.status(200).json({ data: addFeature });
+    res
+      .status(200)
+      .json({ message: "Feature Partner added Succesfully", success: true });
   } catch (error) {
     console.error("Error adding Feature:", error.message);
     res.status(500).json({ msg: "Internal Server Error" });
