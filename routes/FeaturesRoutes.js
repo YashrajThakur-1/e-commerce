@@ -113,9 +113,7 @@ router.post("/get-featurepartner", async (req, res) => {
       };
     }
 
-    res
-      .status(200)
-      .json({ data: data, pagination: pagination, totalCount: totalCount });
+    res.status(200).json({ data: data, totalCount: totalCount });
   } catch (error) {
     res.status(500).json({ error: "Internal Server Error" });
   }
