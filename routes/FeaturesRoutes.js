@@ -31,6 +31,7 @@ const featureValidationSchema = Joi.object({
   rating: Joi.number().required("rating is required"),
   deliveryType: Joi.string().required("deliveryType is required"),
   foodtype: Joi.string().required("foodtype is required"),
+  time: Joi.string().required("time is required"),
 });
 router.post("/add-featurePartner", upload, async (req, res) => {
   try {
