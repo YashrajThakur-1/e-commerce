@@ -7,6 +7,7 @@ const Restaurant = require("../model/RestuarantSchema");
 // Serve static files from the "public" directory
 router.use(express.static("public"));
 
+// Multer storage configuration
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, "public");
@@ -20,6 +21,8 @@ const storage = multer.diskStorage({
 });
 
 const upload = multer({ storage: storage }).array("image", 5); // '5' is the max count of images
+
+// Route for adding a new restaurant
 router.post("/add-RestaurantPartner", async (req, res) => {
   try {
     // Handle multiple image uploads
@@ -36,9 +39,6 @@ router.post("/add-RestaurantPartner", async (req, res) => {
       // Get the filenames of the uploaded images
       const images = req.files.map((file) => file.filename);
 
-      console.log("Uploaded files:", req.files); // Log uploaded files
-      console.log("Images array:", images); // Log image file names
-
       // Create a new Restaurant instance
       const newRestaurant = new Restaurant({
         images,
@@ -48,8 +48,6 @@ router.post("/add-RestaurantPartner", async (req, res) => {
         deliveryType,
         time,
       });
-
-      console.log("New restaurant:", newRestaurant); // Log new restaurant object
 
       // Save the new Restaurant to the database
       const addRestaurant = await newRestaurant.save();
@@ -65,16 +63,47 @@ router.post("/add-RestaurantPartner", async (req, res) => {
   }
 });
 
-router.get("/get-restaurantItem", async (req, res) => {
+// Route for retrieving all restaurant items
+router.post("/get-restaurantItem", async (req, res) => {
   try {
-    const data = await Restaurant.find();
-    res.status(200).json({ data: data, success: true });
-  } catch {
-    console.error("Error adding Restaurant:", error);
-    res.status(500).json({ msg: "Internal Server Error" });
+    const { page, limit } = req.body;
+    const parsedPage = parseInt(page) || 1; // Default to page 1 if not provided
+    const parsedLimit = parseInt(limit) || 10; // Default to limit of 10 if not provided
+
+    const startIndex = (parsedPage - 1) * parsedLimit;
+    console.log("Start Index:", startIndex);
+    console.log("Limit:", parsedLimit);
+
+    const data = await Restaurant.find()
+      .limit(parsedLimit)
+      .skip(startIndex)
+      .exec();
+
+    const totalCount = await Restaurant.countDocuments(); // Get total count of documents
+
+    const pagination = {};
+
+    if (startIndex + parsedLimit < totalCount) {
+      pagination.next = {
+        page: parsedPage + 1,
+        limit: parsedLimit,
+      };
+    }
+
+    if (startIndex > 0) {
+      pagination.prev = {
+        page: parsedPage - 1,
+        limit: parsedLimit,
+      };
+    }
+
+    res.status(200).json({ data: data, totalCount: totalCount });
+  } catch (error) {
+    res.status(500).json({ error: "Internal Server Error" });
   }
 });
 
+// Route for retrieving details of a specific restaurant item
 router.get("/detail-restaurantItem/:id", async (req, res) => {
   try {
     const { id } = req.params;
@@ -88,4 +117,5 @@ router.get("/detail-restaurantItem/:id", async (req, res) => {
     res.status(500).json({ msg: "Internal Server Error" });
   }
 });
+
 module.exports = router;
