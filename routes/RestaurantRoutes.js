@@ -74,4 +74,18 @@ router.get("/get-restaurantItem", async (req, res) => {
     res.status(500).json({ msg: "Internal Server Error" });
   }
 });
+
+router.get("/detail-restaurantItem/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const restaurant = await Restaurant.findById(id);
+    if (!restaurant) {
+      return res.status(404).json({ msg: "Restaurant not found" });
+    }
+    res.status(200).json({ data: restaurant, success: true });
+  } catch (error) {
+    console.error("Error retrieving Restaurant:", error);
+    res.status(500).json({ msg: "Internal Server Error" });
+  }
+});
 module.exports = router;

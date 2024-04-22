@@ -178,4 +178,18 @@ router.put("/updated-Feature/:id", upload, async (req, res) => {
     res.status(500).json({ success: false, error: "Internal Server Error" });
   }
 });
+
+router.get("/detail-Feature/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const Feature = await Feature.findById(id);
+    if (!Feature) {
+      return res.status(404).json({ msg: "Feature not found" });
+    }
+    res.status(200).json({ data: Feature, success: true });
+  } catch (error) {
+    console.error("Error retrieving Feature:", error);
+    res.status(500).json({ msg: "Internal Server Error" });
+  }
+});
 module.exports = router;
