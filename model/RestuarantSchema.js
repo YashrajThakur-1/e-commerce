@@ -3,7 +3,6 @@ const mongoose = require("mongoose");
 const restaurantSchema = new mongoose.Schema({
   images: [
     {
-      // Modified property name to plural form
       type: String,
       required: true,
     },
