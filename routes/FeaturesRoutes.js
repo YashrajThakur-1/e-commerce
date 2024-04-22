@@ -26,20 +26,22 @@ const storage = multer.diskStorage({
 const upload = multer({ storage: storage }).single("image");
 
 const featureValidationSchema = Joi.object({
-  partnerName: Joi.string().required("Name is required"),
-  location: Joi.string().required("location is required"),
-  rating: Joi.number().required("rating is required"),
-  deliveryType: Joi.string().required("deliveryType is required"),
-  foodtype: Joi.string().required("foodtype is required"),
-  time: Joi.string().required("time is required"),
+  partnerName: Joi.string().required(),
+  location: Joi.string().required(),
+  rating: Joi.number().required(),
+  deliveryType: Joi.string().required(),
+  foodtype: Joi.string().required(),
+  time: Joi.string().optional(), // Marking 'time' as optional
 });
+
 router.post("/add-featurePartner", upload, async (req, res) => {
   try {
     // Validate request body
     const { error } = featureValidationSchema.validate(req.body);
+    // console.log("First", req.body);
     if (error) {
       console.log(error);
-
+      console.log(" error.details", error.details[0]);
       return res.status(400).json({ error: error.details[0].message });
     }
 
