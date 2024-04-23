@@ -34,7 +34,15 @@ router.post("/add-RestaurantPartner", async (req, res) => {
       }
 
       // Extract data from request body
-      const { available, location, rating, deliveryType, time } = req.body;
+      const {
+        available,
+        location,
+        rating,
+        deliveryType,
+        time,
+        foodtype,
+        restaurantPartnerName,
+      } = req.body;
 
       // Get the filenames of the uploaded images
       const images = req.files.map((file) => file.filename);
@@ -47,6 +55,8 @@ router.post("/add-RestaurantPartner", async (req, res) => {
         rating,
         deliveryType,
         time,
+        foodtype,
+        restaurantPartnerName,
       });
 
       // Save the new Restaurant to the database

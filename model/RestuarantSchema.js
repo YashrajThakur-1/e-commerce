@@ -11,6 +11,10 @@ const restaurantSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  restaurantPartnerName: {
+    type: String,
+    required: true,
+  },
   location: {
     type: String,
     required: true, // Corrected typo in 'required'
@@ -26,6 +30,18 @@ const restaurantSchema = new mongoose.Schema({
   },
   time: {
     type: String,
+    required: true,
+  },
+  foodtype: {
+    type: [String],
+    enum: [
+      "Chinese",
+      "Italian",
+      "Mexican",
+      "Indian",
+      "Japanese",
+      "SouthIndian",
+    ],
     required: true,
   },
 });
