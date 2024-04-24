@@ -65,13 +65,11 @@ router.post("/login", validate(loginSchema), async (req, res) => {
 
     const token = generateToken(user);
 
-    res
-      .status(200)
-      .json({
-        message: "User Login Successfully!",
-        token: token,
-        status: true,
-      });
+    res.status(200).json({
+      message: "User Login Successfully!",
+      token: token,
+      status: true,
+    });
   } catch (error) {
     console.error("Error on login", error);
     res.status(500).json({ error: "Internal Server Error", status: false });

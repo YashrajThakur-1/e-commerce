@@ -3,6 +3,7 @@ const router = express.Router();
 const path = require("path");
 const multer = require("multer");
 const Restaurant = require("../model/RestuarantSchema");
+const { jsonAuthMiddleware } = require("../authorization/auth");
 
 // Serve static files from the "public" directory
 router.use(express.static("public"));
@@ -74,7 +75,7 @@ router.post("/add-RestaurantPartner", async (req, res) => {
 });
 
 // Route for retrieving all restaurant items
-router.post("/get-restaurantItem", async (req, res) => {
+router.post("/get-restaurantItem", jsonAuthMiddleware, async (req, res) => {
   try {
     const { page, limit } = req.body;
     const parsedPage = parseInt(page) || 1; // Default to page 1 if not provided
@@ -114,17 +115,45 @@ router.post("/get-restaurantItem", async (req, res) => {
 });
 
 // Route for retrieving details of a specific restaurant item
-router.get("/detail-restaurantItem/:id", async (req, res) => {
-  try {
-    const { id } = req.params;
-    const restaurant = await Restaurant.findById(id);
-    if (!restaurant) {
-      return res.status(404).json({ msg: "Restaurant not found" });
+router.get(
+  "/detail-restaurantItem/:id",
+  jsonAuthMiddleware,
+  async (req, res) => {
+    try {
+      const { id } = req.params;
+      const restaurant = await Restaurant.findById(id);
+      if (!restaurant) {
+        return res.status(404).json({ msg: "Restaurant not found" });
+      }
+      res.status(200).json({ data: restaurant, success: true });
+    } catch (error) {
+      console.error("Error retrieving Restaurant:", error);
+      res.status(500).json({ msg: "Internal Server Error" });
     }
-    res.status(200).json({ data: restaurant, success: true });
+  }
+);
+
+router.get("/get-foodType/:foodtype", async (req, res) => {
+  try {
+    const validFoodTypes = [
+      "Chinese",
+      "Italian",
+      "SouthIndian",
+      "Japanese",
+      "Indian",
+      "Mexican",
+    ];
+    const foodtype = req.params.foodtype;
+
+    if (validFoodTypes.includes(foodtype)) {
+      const response = await Restaurant.find({ foodtype: foodtype });
+      res.status(200).json(response);
+    } else {
+      res.status(404).json({ error: `Invalid Taste Type: ${foodtype}` });
+    }
   } catch (error) {
-    console.error("Error retrieving Restaurant:", error);
-    res.status(500).json({ msg: "Internal Server Error" });
+    console.error("Error on fetching menu items", error);
+    res.status(500).json({ error: "Internal Server Error" });
   }
 });
 

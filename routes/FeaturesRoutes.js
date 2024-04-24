@@ -5,6 +5,7 @@ const router = express.Router();
 const path = require("path");
 const multer = require("multer");
 const Feature = require("../model/featuresPartnerSchema");
+const { jsonAuthMiddleware } = require("../authorization/auth");
 // const featureValidationSchema = require("../validate/validation");
 
 // Serve static files from the "public" directory
@@ -82,7 +83,7 @@ router.post("/add-featurePartner", upload, async (req, res) => {
 });
 
 // Route to retrieve all feature partners
-router.post("/get-featurepartner", async (req, res) => {
+router.post("/get-featurepartner", jsonAuthMiddleware, async (req, res) => {
   try {
     const { page, limit } = req.body;
     const parsedPage = parseInt(page) || 1; // Default to page 1 if not provided
@@ -179,7 +180,7 @@ router.put("/updated-Feature/:id", upload, async (req, res) => {
   }
 });
 
-router.get("/detail-Feature/:id", async (req, res) => {
+router.get("/detail-Feature/:id", jsonAuthMiddleware, async (req, res) => {
   try {
     const { id } = req.params;
     const Feature = await Feature.findById(id);
@@ -190,6 +191,30 @@ router.get("/detail-Feature/:id", async (req, res) => {
   } catch (error) {
     console.error("Error retrieving Feature:", error);
     res.status(500).json({ msg: "Internal Server Error" });
+  }
+});
+
+router.get("/get-featurePartner/:foodtype", async (req, res) => {
+  try {
+    const validFoodTypes = [
+      "Chinese",
+      "Italian",
+      "SouthIndian",
+      "Japanese",
+      "Indian",
+      "Mexican",
+    ];
+    const foodtype = req.params.foodtype;
+
+    if (validFoodTypes.includes(foodtype)) {
+      const response = await Feature.find({ foodtype: foodtype });
+      res.status(200).json(response);
+    } else {
+      res.status(404).json({ error: `Invalid Taste Type: ${foodtype}` });
+    }
+  } catch (error) {
+    console.error("Error on fetching menu items", error);
+    res.status(500).json({ error: "Internal Server Error" });
   }
 });
 module.exports = router;
