@@ -75,22 +75,35 @@ router.post("/add-RestaurantPartner", async (req, res) => {
 });
 
 // Route for retrieving all restaurant items
-router.post("/get-restaurantItem", jsonAuthMiddleware, async (req, res) => {
+router.post("/get-restaurantItem", async (req, res) => {
   try {
-    const { page, limit } = req.body;
+    const { page, limit, search } = req.body;
     const parsedPage = parseInt(page) || 1; // Default to page 1 if not provided
     const parsedLimit = parseInt(limit) || 10; // Default to limit of 10 if not provided
+    let searchQuery = {};
+    if (search) {
+      const regex = new RegExp(search, "i"); // Case-insensitive search
+      searchQuery = {
+        $or: [
+          { restaurantPartnerName: regex },
+          { deliveryType: regex },
+          { foodtype: regex },
+        ],
+      };
+    }
 
     const startIndex = (parsedPage - 1) * parsedLimit;
+
     console.log("Start Index:", startIndex);
     console.log("Limit:", parsedLimit);
 
-    const data = await Restaurant.find()
+    // Remove curly braces around searchQuery
+    const data = await Restaurant.find(searchQuery)
       .limit(parsedLimit)
       .skip(startIndex)
       .exec();
 
-    const totalCount = await Restaurant.countDocuments(); // Get total count of documents
+    const totalCount = await Restaurant.countDocuments(searchQuery); // Pass searchQuery to countDocuments
 
     const pagination = {};
 
@@ -108,53 +121,52 @@ router.post("/get-restaurantItem", jsonAuthMiddleware, async (req, res) => {
       };
     }
 
-    res.status(200).json({ data: data, totalCount: totalCount });
+    res
+      .status(200)
+      .json({ data: data, totalCount: totalCount, pagination: pagination }); // Include pagination in response
   } catch (error) {
+    console.log(error);
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
 
 // Route for retrieving details of a specific restaurant item
-router.get(
-  "/detail-restaurantItem/:id",
-  jsonAuthMiddleware,
-  async (req, res) => {
-    try {
-      const { id } = req.params;
-      const restaurant = await Restaurant.findById(id);
-      if (!restaurant) {
-        return res.status(404).json({ msg: "Restaurant not found" });
-      }
-      res.status(200).json({ data: restaurant, success: true });
-    } catch (error) {
-      console.error("Error retrieving Restaurant:", error);
-      res.status(500).json({ msg: "Internal Server Error" });
-    }
-  }
-);
-
-router.get("/get-foodType/:foodtype", async (req, res) => {
+router.get("/detail-restaurantItem/:id", async (req, res) => {
   try {
-    const validFoodTypes = [
-      "Chinese",
-      "Italian",
-      "SouthIndian",
-      "Japanese",
-      "Indian",
-      "Mexican",
-    ];
-    const foodtype = req.params.foodtype;
-
-    if (validFoodTypes.includes(foodtype)) {
-      const response = await Restaurant.find({ foodtype: foodtype });
-      res.status(200).json(response);
-    } else {
-      res.status(404).json({ error: `Invalid Taste Type: ${foodtype}` });
+    const { id } = req.params;
+    const restaurant = await Restaurant.findById(id);
+    if (!restaurant) {
+      return res.status(404).json({ msg: "Restaurant not found" });
     }
+    res.status(200).json({ data: restaurant, success: true });
   } catch (error) {
-    console.error("Error on fetching menu items", error);
-    res.status(500).json({ error: "Internal Server Error" });
+    console.error("Error retrieving Restaurant:", error);
+    res.status(500).json({ msg: "Internal Server Error" });
   }
 });
+
+// router.get("/get-foodType/:id/:foodtype", async (req, res) => {
+//   try {
+//     const validFoodTypes = [
+//       "Chinese",
+//       "Italian",
+//       "SouthIndian",
+//       "Japanese",
+//       "Indian",
+//       "Mexican",
+//     ];
+//     const { foodtype, id } = req.params;
+
+//     if (validFoodTypes.includes(foodtype)) {
+//       const response = await Restaurant.findById(id);
+//       res.status(200).json(response);
+//     } else {
+//       res.status(404).json({ error: `Invalid Taste Type: ${foodtype}` });
+//     }
+//   } catch (error) {
+//     console.error("Error on fetching menu items", error);
+//     res.status(500).json({ error: "Internal Server Error" });
+//   }
+// });
 
 module.exports = router;

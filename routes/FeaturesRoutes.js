@@ -210,11 +210,12 @@ router.get("/get-featurePartner/:foodtype", async (req, res) => {
       const response = await Feature.find({ foodtype: foodtype });
       res.status(200).json(response);
     } else {
-      res.status(404).json({ error: `Invalid Taste Type: ${foodtype}` });
+      res.status(404).json({ error: `Invalid foodtype : ${foodtype}` });
     }
   } catch (error) {
-    console.error("Error on fetching menu items", error);
+    console.error("Error on fetching foodtype items", error);
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
+
 module.exports = router;

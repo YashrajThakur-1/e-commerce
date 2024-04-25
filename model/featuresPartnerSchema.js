@@ -28,14 +28,6 @@ const fetaureSchema = new mongoose.Schema({
   },
   foodtype: {
     type: [String],
-    enum: [
-      "Chinese",
-      "Italian",
-      "Mexican",
-      "Indian",
-      "Japanese",
-      "SouthIndian",
-    ],
     required: true,
   },
 });

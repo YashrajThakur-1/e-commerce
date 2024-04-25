@@ -33,15 +33,7 @@ const restaurantSchema = new mongoose.Schema({
     required: true,
   },
   foodtype: {
-    type: [String],
-    enum: [
-      "Chinese",
-      "Italian",
-      "Mexican",
-      "Indian",
-      "Japanese",
-      "SouthIndian",
-    ],
+    type: [String], // Array of strings
     required: true,
   },
 });
