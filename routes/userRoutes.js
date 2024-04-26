@@ -176,4 +176,43 @@ router.get("/profile", jsonAuthMiddleware, async (req, res) => {
   }
 });
 
+router.post("/profile/password", jsonAuthMiddleware, async (req, res) => {
+  try {
+    const userData = req.user;
+    const userId = userData.userData._id;
+    console.log("first", userData);
+    console.log("Data", userId);
+    const { currentPassword, newPassword } = req.body;
+
+    // Ensure both currentPassword and newPassword are provided
+    if (!currentPassword || !newPassword) {
+      return res
+        .status(400)
+        .json({ error: "Both currentPassword and newPassword are required" });
+    }
+
+    const user = await User.findById(userId);
+
+    // If user is not found
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    // Compare the provided currentPassword with the user's actual password
+    if (!(await user.comparePassword(currentPassword))) {
+      return res.status(401).json({ error: "Invalid username or password" });
+    }
+
+    // Update the user's password and save
+    user.password = newPassword;
+    await user.save();
+
+    console.log("Password Updated Successfully");
+    res.status(200).json({ message: "Password Updated" });
+  } catch (error) {
+    console.error("Error on saving data", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
 module.exports = router;
