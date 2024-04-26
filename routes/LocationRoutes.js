@@ -22,33 +22,37 @@ router.get("/getlocation", async (req, res) => {
     res.status(500).json({ error: "Internal Server Error", status: false });
   }
 });
-router.get("/match-location-get-restaurant", async (req, res) => {
+router.get("/match-location-get-restaurant/:id", async (req, res) => {
   try {
+    // Fetch the location with the specified ID
+    const id = req.params.id;
+    const location = await locationModel.findById(id);
+
+    if (!location) {
+      return res
+        .status(404)
+        .json({ error: "Location not found", status: false });
+    }
+
     // Fetch all restaurants
     const restaurants = await Restaurant.find();
-
-    // Fetch all locations
-    const locations = await locationModel.find();
 
     // Array to store matched restaurants
     const matchedRestaurants = [];
 
     // Loop through each restaurant
     for (const restaurant of restaurants) {
-      // Check if there is a location in the location model that matches the restaurant's coordinates
-      const matchedLocation = locations.find((location) => {
-        return location.location === restaurant.location;
-      });
-
-      // If a match is found, add the restaurant along with the matched location data to the result
-      if (matchedLocation) {
+      // Check if the restaurant's location matches the location's ID
+      if (restaurant.location === location.location) {
+        // If a match is found, add the restaurant along with the matched location data to the result
         matchedRestaurants.push({
           restaurant: restaurant,
-          location: matchedLocation,
+          // location: location,
         });
       }
     }
-    console.log("first", matchedRestaurants);
+
+    console.log("matchedRestaurants", matchedRestaurants);
     res.status(200).json({ data: matchedRestaurants, success: true });
   } catch (error) {
     console.error("Error on matching restaurant locations", error);
