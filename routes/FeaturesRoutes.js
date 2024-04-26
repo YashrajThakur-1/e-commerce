@@ -83,45 +83,58 @@ router.post("/add-featurePartner", upload, async (req, res) => {
 });
 
 // Route to retrieve all feature partners
-router.post("/get-featurepartner", jsonAuthMiddleware, async (req, res) => {
-  try {
-    const { page, limit } = req.body;
-    const parsedPage = parseInt(page) || 1; // Default to page 1 if not provided
-    const parsedLimit = parseInt(limit) || 10; // Default to limit of 10 if not provided
 
-    const startIndex = (parsedPage - 1) * parsedLimit;
-    console.log("Start Index:", startIndex);
+router.post("/get-featurepartner", async (req, res) => {
+  try {
+    const { offset, limit, search } = req.body; // Change 'page' to 'offset'
+    const parsedOffset = parseInt(offset) || 0; // Default offset to 0 if not provided
+    const parsedLimit = parseInt(limit) || 10; // Default to limit of 10 if not provided
+    let searchQuery = {};
+    if (search) {
+      const regex = new RegExp(search, "i"); // Case-insensitive search
+      searchQuery = {
+        $or: [
+          { FeaturePartnerName: regex },
+          { deliveryType: regex },
+          { foodtype: regex },
+        ],
+      };
+    }
+
+    console.log("Offset:", parsedOffset);
     console.log("Limit:", parsedLimit);
 
-    const data = await Feature.find()
+    const data = await Feature.find(searchQuery)
       .limit(parsedLimit)
-      .skip(startIndex)
+      .skip(parsedOffset) // Use offset instead of startIndex
       .exec();
 
-    const totalCount = await Feature.countDocuments(); // Get total count of documents
+    const totalCount = await Feature.countDocuments(searchQuery);
 
     const pagination = {};
 
-    if (startIndex + parsedLimit < totalCount) {
+    if (parsedOffset + parsedLimit < totalCount) {
       pagination.next = {
-        page: parsedPage + 1,
+        offset: parsedOffset + parsedLimit, // Update offset for next page
         limit: parsedLimit,
       };
     }
 
-    if (startIndex > 0) {
+    if (parsedOffset > 0) {
       pagination.prev = {
-        page: parsedPage - 1,
+        offset: Math.max(parsedOffset - parsedLimit, 0), // Ensure offset doesn't go negative
         limit: parsedLimit,
       };
     }
 
-    res.status(200).json({ data: data, totalCount: totalCount });
+    res
+      .status(200)
+      .json({ data: data, totalCount: totalCount, pagination: pagination });
   } catch (error) {
+    console.log(error);
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
-
 router.delete("/remove-featurepartner/:id", async (req, res) => {
   try {
     const userId = req.params.id;
