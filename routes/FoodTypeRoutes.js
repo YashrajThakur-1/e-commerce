@@ -35,7 +35,7 @@ router.post("/add-fooditem", upload, async (req, res) => {
     }
 
     // Extract data from request body
-    const { name, description, foodtype, price } = req.body;
+    const { name, description, foodtype, price, restaurantId } = req.body;
 
     // Get the filename of the uploaded image
     const image = req.file.filename;
@@ -47,6 +47,7 @@ router.post("/add-fooditem", upload, async (req, res) => {
       description,
       foodtype,
       price,
+      restaurant: restaurantId, // Add restaurant ID to the food item
     });
 
     // Save the new feature to the database
@@ -55,7 +56,7 @@ router.post("/add-fooditem", upload, async (req, res) => {
     // Return success response with the added feature data
     res
       .status(200)
-      .json({ message: "Food Partner added Succesfully", success: true });
+      .json({ message: "Food Partner added Successfully", success: true });
   } catch (error) {
     console.error("Error adding Feature:", error.message);
     res.status(500).json({ msg: "Internal Server Error" });
@@ -72,22 +73,30 @@ router.get("/get-foodtype-data", async (req, res) => {
   }
 });
 
-router.get("/get-foodTypedata/:foodtype", async (req, res) => {
-  try {
-    const foodtype = req.params.foodtype;
-    const response = await Food.find({ foodtype: foodtype });
+router.get(
+  "/get-food-by-restaurant/:restaurantId/:foodtype",
+  async (req, res) => {
+    try {
+      const restaurantId = req.params.restaurantId;
+      const foodtype = req.params.foodtype; // Get the foodtype parameter from the request
 
-    if (response.length > 0) {
-      res.status(200).json(response);
-    } else {
-      res
-        .status(404)
-        .json({ error: `No menu items found for Food Type: ${foodtype}` });
+      const response = await Food.find({
+        restaurant: restaurantId,
+        foodtype: foodtype,
+      }); // Modify the query to include the foodtype filter
+
+      if (response.length > 0) {
+        res.status(200).json(response);
+      } else {
+        res.status(404).json({
+          error: `No menu items found for Restaurant ID: ${restaurantId} and food type: ${foodType}`,
+        });
+      }
+    } catch (error) {
+      console.error("Error fetching menu items", error);
+      res.status(500).json({ error: "Internal Server Error" });
     }
-  } catch (error) {
-    console.error("Error on fetching menu items", error);
-    res.status(500).json({ error: "Internal Server Error" });
   }
-});
+);
 
 module.exports = router;

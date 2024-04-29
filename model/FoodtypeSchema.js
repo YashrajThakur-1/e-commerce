@@ -1,28 +1,16 @@
 const mongoose = require("mongoose");
-const schema = new mongoose.Schema({
-  image: {
-    type: String,
-    required: true,
-  },
-  name: {
-    type: String,
-    required: true,
-  },
-  description: {
-    type: String,
-    required: true,
-  },
-  price: {
-    type: String,
-    required: true,
-  },
+const Schema = mongoose.Schema;
 
-  foodtype: {
-    type: [String], // Array of strings
-    required: true,
+const foodtypeSchema = new Schema({
+  image: String,
+  name: String,
+  description: String,
+  foodtype: String,
+  price: String,
+  restaurant: {
+    type: Schema.Types.ObjectId,
+    ref: "Restaurant",
   },
 });
 
-const Food = mongoose.model("FoodType", schema);
-
-module.exports = Food;
+module.exports = mongoose.model("Food", foodtypeSchema);
