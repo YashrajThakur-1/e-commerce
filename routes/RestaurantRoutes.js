@@ -22,18 +22,17 @@ const storage = multer.diskStorage({
 });
 
 const upload = multer({ storage: storage }).array("image", 5); // '5' is the max count of images
-
+const uploadcategoryImage = multer({ storage: storage }).single(
+  "categoryImage"
+);
 // Route for adding a new restaurant
-router.post("/add-RestaurantPartner", async (req, res) => {
-  try {
-    // Handle multiple image uploads
-    upload(req, res, async function (err) {
-      if (err instanceof multer.MulterError) {
-        return res.status(400).json({ error: "Error uploading files" });
-      } else if (err) {
-        return res.status(400).json({ error: err.message });
-      }
-
+// Route for adding a new restaurant
+router.post(
+  "/add-RestaurantPartner",
+  upload,
+  uploadcategoryImage,
+  async (req, res) => {
+    try {
       // Extract data from request body
       const {
         available,
@@ -41,11 +40,22 @@ router.post("/add-RestaurantPartner", async (req, res) => {
         rating,
         deliveryType,
         time,
-        foodtype,
         restaurantPartnerName,
+        foodtype,
       } = req.body;
 
-      // Get the filenames of the uploaded images
+      // Ensure foodtype data is present and properly formatted
+      if (!Array.isArray(foodtype)) {
+        return res.status(400).json({ error: "'foodtype' must be an array" });
+      }
+
+      // Create an array of foodtype objects
+      const foodtypeObjects = foodtype.map(({ name }) => ({
+        name,
+        categoryImage: req.file ? req.file.filename : null, // Use the uploaded category image filename
+      }));
+
+      // Get the filenames of the uploaded images for restaurant
       const images = req.files.map((file) => file.filename);
 
       // Create a new Restaurant instance
@@ -56,7 +66,7 @@ router.post("/add-RestaurantPartner", async (req, res) => {
         rating,
         deliveryType,
         time,
-        foodtype,
+        foodtype: foodtypeObjects,
         restaurantPartnerName,
       });
 
@@ -67,12 +77,12 @@ router.post("/add-RestaurantPartner", async (req, res) => {
       res
         .status(200)
         .json({ message: "Restaurant Item added Successfully", success: true });
-    });
-  } catch (error) {
-    console.error("Error adding Restaurant:", error);
-    res.status(500).json({ msg: "Internal Server Error" });
+    } catch (error) {
+      console.error("Error adding Restaurant:", error);
+      res.status(500).json({ msg: "Internal Server Error" });
+    }
   }
-});
+);
 
 // Route for retrieving all restaurant items
 router.post("/get-restaurantItem", async (req, res) => {

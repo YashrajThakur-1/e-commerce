@@ -17,7 +17,7 @@ const restaurantSchema = new mongoose.Schema({
   },
   location: {
     type: String,
-    required: true, // Corrected typo in 'required'
+    required: true,
   },
   rating: {
     type: String,
@@ -32,12 +32,20 @@ const restaurantSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  foodtype: {
-    type: [String], // Array of strings
-    required: true,
-  },
+  foodtype: [
+    {
+      name: {
+        type: String,
+        // required: true, // Name of the food type is required
+      },
+      categoryImage: {
+        type: String,
+        // required: true, // URL or path to the image is required
+      },
+    },
+  ],
 });
 
-const Restaurant = mongoose.model("restaurant", restaurantSchema);
+const Restaurant = mongoose.model("Restaurant", restaurantSchema);
 
 module.exports = Restaurant;

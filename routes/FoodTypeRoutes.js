@@ -72,7 +72,19 @@ router.get("/get-foodtype-data", async (req, res) => {
     res.status(500).json({ msg: "Internal Server Error" });
   }
 });
-
+router.get("/detail-Food-list/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const restaurant = await Food.findById(id);
+    if (!restaurant) {
+      return res.status(404).json({ msg: "Restaurant not found" });
+    }
+    res.status(200).json({ data: restaurant, success: true });
+  } catch (error) {
+    console.error("Error retrieving Restaurant:", error);
+    res.status(500).json({ msg: "Internal Server Error" });
+  }
+});
 router.get(
   "/get-food-by-restaurant/:restaurantId/:foodtype",
   async (req, res) => {
@@ -89,7 +101,7 @@ router.get(
         res.status(200).json(response);
       } else {
         res.status(404).json({
-          error: `No menu items found for Restaurant ID: ${restaurantId} and food type: ${foodType}`,
+          error: `No menu items found for Restaurant ID: ${restaurantId} and food type: ${foodtype}`,
         });
       }
     } catch (error) {
