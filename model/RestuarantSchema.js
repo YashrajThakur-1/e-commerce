@@ -32,18 +32,9 @@ const restaurantSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  foodtype: [
-    {
-      name: {
-        type: String,
-        // required: true, // Name of the food type is required
-      },
-      categoryImage: {
-        type: String,
-        // required: true, // URL or path to the image is required
-      },
-    },
-  ],
+  foodtype: {
+    type: [String],
+  },
 });
 
 const Restaurant = mongoose.model("Restaurant", restaurantSchema);

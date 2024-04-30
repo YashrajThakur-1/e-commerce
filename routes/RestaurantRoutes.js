@@ -22,15 +22,16 @@ const storage = multer.diskStorage({
 });
 
 const upload = multer({ storage: storage }).array("image", 5); // '5' is the max count of images
-const uploadcategoryImage = multer({ storage: storage }).single(
+const uploadCategoryImage = multer({ storage: storage }).single(
   "categoryImage"
 );
+
 // Route for adding a new restaurant
 // Route for adding a new restaurant
 router.post(
   "/add-RestaurantPartner",
   upload,
-  uploadcategoryImage,
+  // uploadCategoryImage,
   async (req, res) => {
     try {
       // Extract data from request body
@@ -43,17 +44,10 @@ router.post(
         restaurantPartnerName,
         foodtype,
       } = req.body;
-
       // Ensure foodtype data is present and properly formatted
-      if (!Array.isArray(foodtype)) {
-        return res.status(400).json({ error: "'foodtype' must be an array" });
-      }
 
+      // console.log(Foodtype);
       // Create an array of foodtype objects
-      const foodtypeObjects = foodtype.map(({ name }) => ({
-        name,
-        categoryImage: req.file ? req.file.filename : null, // Use the uploaded category image filename
-      }));
 
       // Get the filenames of the uploaded images for restaurant
       const images = req.files.map((file) => file.filename);
@@ -66,7 +60,7 @@ router.post(
         rating,
         deliveryType,
         time,
-        foodtype: foodtypeObjects,
+        foodtype,
         restaurantPartnerName,
       });
 
@@ -76,7 +70,7 @@ router.post(
       // Return success response with the added Restaurant data
       res
         .status(200)
-        .json({ message: "Restaurant Item added Successfully", success: true });
+        .json({ message: "Restaurant item added successfully", success: true });
     } catch (error) {
       console.error("Error adding Restaurant:", error);
       res.status(500).json({ msg: "Internal Server Error" });
