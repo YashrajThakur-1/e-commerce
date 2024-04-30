@@ -13,6 +13,7 @@ const featureRoutes = require("./routes/FeaturesRoutes.js");
 const restaurantRoutes = require("./routes/RestaurantRoutes.js");
 const foodroutes = require("./routes/FoodTypeRoutes.js");
 const locationRoutes = require("./routes/LocationRoutes.js");
+const foodTypeRoutes = require("./routes/RestaurantFoodTypeRoutes.js");
 // Middleware to parse JSON Bodies
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -34,6 +35,7 @@ app.use("/auth", featureRoutes);
 app.use("/res/api", restaurantRoutes);
 app.use("/v1/api", foodroutes);
 app.use("/v2/api", locationRoutes);
+app.use("/v3/api", foodTypeRoutes);
 
 app.listen(port, () => {
   console.log(`Server running on port http://localhost:${port}`);

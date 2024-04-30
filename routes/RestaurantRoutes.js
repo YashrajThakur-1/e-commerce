@@ -22,18 +22,23 @@ const storage = multer.diskStorage({
 });
 
 const upload = multer({ storage: storage }).array("image", 5); // '5' is the max count of images
-const uploadCategoryImage = multer({ storage: storage }).single(
-  "categoryImage"
-);
 
 // Route for adding a new restaurant
-// Route for adding a new restaurant
-router.post(
-  "/add-RestaurantPartner",
-  upload,
-  // uploadCategoryImage,
-  async (req, res) => {
-    try {
+router.post("/add-RestaurantPartner", async (req, res) => {
+  try {
+    // Handle multiple image uploads
+    upload(req, res, async function (err) {
+      if (err instanceof multer.MulterError) {
+        return res.status(400).json({ error: "Error uploading files" });
+      } else if (err) {
+        return res.status(400).json({ error: err.message });
+      }
+
+      // Ensure req.files is defined and not empty
+      if (!req.files || req.files.length === 0) {
+        return res.status(400).json({ error: "No files uploaded" });
+      }
+
       // Extract data from request body
       const {
         available,
@@ -41,15 +46,11 @@ router.post(
         rating,
         deliveryType,
         time,
-        restaurantPartnerName,
         foodtype,
+        restaurantPartnerName,
       } = req.body;
-      // Ensure foodtype data is present and properly formatted
-
-      // console.log(Foodtype);
-      // Create an array of foodtype objects
-
-      // Get the filenames of the uploaded images for restaurant
+      console.log(req.body);
+      // Get the filenames of the uploaded images
       const images = req.files.map((file) => file.filename);
 
       // Create a new Restaurant instance
@@ -70,13 +71,13 @@ router.post(
       // Return success response with the added Restaurant data
       res
         .status(200)
-        .json({ message: "Restaurant item added successfully", success: true });
-    } catch (error) {
-      console.error("Error adding Restaurant:", error);
-      res.status(500).json({ msg: "Internal Server Error" });
-    }
+        .json({ message: "Restaurant Item added Successfully", success: true });
+    });
+  } catch (error) {
+    console.error("Error adding Restaurant:", error);
+    res.status(500).json({ msg: "Internal Server Error" });
   }
-);
+});
 
 // Route for retrieving all restaurant items
 router.post("/get-restaurantItem", async (req, res) => {
