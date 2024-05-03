@@ -1,6 +1,5 @@
 const express = require("express");
 const Joi = require("joi");
-
 const router = express.Router();
 const path = require("path");
 const multer = require("multer");
@@ -47,9 +46,6 @@ router.post("/add-featurePartner", upload, async (req, res) => {
     }
 
     // Check if file is uploaded
-    if (!req.file) {
-      return res.status(400).json({ error: "Image file is required" });
-    }
 
     // Extract data from request body
     const { partnerName, location, rating, deliveryType, foodtype, time } =

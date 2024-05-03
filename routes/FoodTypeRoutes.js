@@ -110,5 +110,78 @@ router.get(
     }
   }
 );
+router.get("/filterByPrice", async (req, res) => {
+  try {
+    const { price } = req.body; // Retrieve price from query parameters
+    // const numericPrice = parseFloat(price); // Convert price to a number
 
+    const data = await Food.find({ price: { $lte: price } }); // Fetch items with prices greater than the provided price
+    console.log(price);
+    res.status(200).json(data);
+  } catch (error) {
+    console.error("Error retrieving Food:", error);
+    res.status(500).json({ msg: "Internal Server Error" });
+  }
+});
+router.get("/filterByFoodName", async (req, res) => {
+  try {
+    const { foodName } = req.query; // Retrieve foodName from query parameters
+
+    // Use a regular expression to perform a case-insensitive search for foodName
+    const data = await Food.find({
+      foodName: { $regex: new RegExp(foodName, "i") },
+    });
+    console.log(data);
+    res.status(200).json(data);
+  } catch (error) {
+    console.error("Error retrieving Food:", error);
+    res.status(500).json({ msg: "Internal Server Error" });
+  }
+});
+router.put("/update-fooditem/:id", upload, async (req, res) => {
+  try {
+    const { id } = req.params;
+    // Extract updated data from request body
+    const { name, description, foodtype, price, restaurantId } = req.body;
+
+    // Check if file is uploaded
+    const image = req.file ? req.file.filename : undefined;
+
+    // Find the food item by ID and update its data
+    await Food.findByIdAndUpdate(id, {
+      ...(image && { image }), // If image is uploaded, update image
+      ...(name && { name }),
+      ...(description && { description }),
+      ...(foodtype && { foodtype }),
+      ...(price && { price }),
+      ...(restaurantId && { restaurant: restaurantId }),
+    });
+
+    // Return success response
+    res
+      .status(200)
+      .json({ message: "Food item updated successfully", success: true });
+  } catch (error) {
+    console.error("Error updating food item:", error.message);
+    res.status(500).json({ msg: "Internal Server Error" });
+  }
+});
+
+// Delete Food Item
+router.delete("/delete-fooditem/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Find the food item by ID and delete it
+    await Food.findByIdAndDelete(id);
+
+    // Return success response
+    res
+      .status(200)
+      .json({ message: "Food item deleted successfully", success: true });
+  } catch (error) {
+    console.error("Error deleting food item:", error.message);
+    res.status(500).json({ msg: "Internal Server Error" });
+  }
+});
 module.exports = router;

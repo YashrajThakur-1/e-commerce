@@ -6,7 +6,7 @@ const foodtypeSchem = new Schema({
   name: String,
   description: String,
   foodtype: String,
-  price: String,
+  price: Number,
   restaurant: {
     type: Schema.Types.ObjectId,
     ref: "Restaurant",

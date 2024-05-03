@@ -4,33 +4,33 @@ const restaurantSchema = new mongoose.Schema({
   images: [
     {
       type: String,
-      required: true,
+      // required: true,
     },
   ],
   available: {
     type: String,
-    required: true,
+    // required: true,
   },
   restaurantPartnerName: {
     type: String,
-    required: true,
+    // required: true,
   },
   location: {
     type: String,
-    required: true,
+    // required: true,
   },
   rating: {
     type: String,
-    required: true,
+    // required: true,
   },
   deliveryType: {
     type: String,
     enum: ["express", "free"],
-    required: true,
+    // required: true,
   },
   time: {
     type: String,
-    required: true,
+    // required: true,
   },
   foodtype: {
     type: [String],
