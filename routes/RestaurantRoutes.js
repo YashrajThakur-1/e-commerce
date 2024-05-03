@@ -24,13 +24,9 @@ const storage = multer.diskStorage({
 const upload = multer({ storage: storage }).array("image", 5); // '5' is the max count of images
 
 // Route for adding a new restaurant
+// Route for adding a new restaurant
 router.post("/add-RestaurantPartner", upload, async (req, res) => {
   try {
-    // Handle multiple image uploads
-
-    // Ensure req.files is defined and not empty
-
-    // Extract data from request body
     const {
       available,
       location,
@@ -39,18 +35,15 @@ router.post("/add-RestaurantPartner", upload, async (req, res) => {
       time,
       foodtype,
       restaurantPartnerName,
-      image,
     } = req.body;
-    console.log(req.body);
-    // Get the filenames of the uploaded images
+    console.log("req.body", req.body);
     console.log("req.files", req.files);
-    console.log("req.file", req.file);
-    // const images = req.files.map((file) => file.filename);
-    console.log("images", image);
-
+    // Get the filenames of the uploaded images
+    const images = req.files.map((file) => file.filename);
+    console.log("first", images);
     // Create a new Restaurant instance
     const newRestaurant = new Restaurant({
-      images: image,
+      images: images, // Ensure to pass the correct field name here
       available,
       location,
       rating,
