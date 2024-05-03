@@ -40,9 +40,9 @@ router.post("/add-RestaurantPartner", upload, async (req, res) => {
       foodtype,
       restaurantPartnerName,
     } = req.body;
-    console.log(req.body);
     // Get the filenames of the uploaded images
     const images = req.files.map((file) => file.filename);
+    console.log(images);
 
     // Create a new Restaurant instance
     const newRestaurant = new Restaurant({
@@ -55,14 +55,13 @@ router.post("/add-RestaurantPartner", upload, async (req, res) => {
       foodtype,
       restaurantPartnerName,
     });
-
     // Save the new Restaurant to the database
     const addRestaurant = await newRestaurant.save();
-
     // Return success response with the added Restaurant data
-    res
-      .status(200)
-      .json({ message: "Restaurant Item added Successfully", success: true });
+    res.status(200).json({
+      message: "Restaurant Item added Successfully",
+      success: true,
+    });
   } catch (error) {
     console.error("Error adding Restaurant:", error);
     res.status(500).json({ msg: "Internal Server Error" });
