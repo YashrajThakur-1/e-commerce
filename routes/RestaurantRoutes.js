@@ -43,6 +43,7 @@ router.post("/add-RestaurantPartner", upload, async (req, res) => {
     console.log(req.body);
     // Get the filenames of the uploaded images
     console.log("req.files", req.files);
+    console.log("req.file", req.file);
     const images = req.files.map((file) => file.filename);
     console.log("images", images);
 
