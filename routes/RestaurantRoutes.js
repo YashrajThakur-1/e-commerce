@@ -42,8 +42,9 @@ router.post("/add-RestaurantPartner", upload, async (req, res) => {
     } = req.body;
     console.log(req.body);
     // Get the filenames of the uploaded images
+    console.log("req.files", req.files);
     const images = req.files.map((file) => file.filename);
-    console.log(images);
+    console.log("images", images);
 
     // Create a new Restaurant instance
     const newRestaurant = new Restaurant({
