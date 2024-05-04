@@ -35,10 +35,10 @@ router.post(
         foodtype,
         restaurantPartnerName,
       } = req.body;
-
+      console.log("Req Body", req.body);
       // Get the filenames of the uploaded images
       const images = req.files.map((file) => file.filename);
-
+      console.log("IMages", images);
       // Create a new Restaurant instance
       const newRestaurant = new Restaurant({
         images: images,
@@ -50,7 +50,7 @@ router.post(
         foodtype,
         restaurantPartnerName,
       });
-
+      console.log("newRestaurant", newRestaurant);
       // Save the new Restaurant to the database
       const addRestaurant = await newRestaurant.save();
 
