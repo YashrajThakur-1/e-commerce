@@ -29,6 +29,7 @@ router.post("/add-order", async (req, res) => {
     // Create a new order item
     const orderItem = {
       name: foodType.name,
+      image: foodType.image,
       description: foodType.description,
       price: foodType.price,
       quantity: quantity,
