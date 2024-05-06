@@ -177,13 +177,16 @@ router.get("/profile", jsonAuthMiddleware, async (req, res) => {
   }
 });
 
-router.post("/profile/password", jsonAuthMiddleware, async (req, res) => {
+router.post("/change-password", jsonAuthMiddleware, async (req, res) => {
   try {
+    const { currentPassword, newPassword } = req.body;
+
+    console.log("Current Password:", currentPassword);
+    console.log("New Password:", newPassword);
     const userData = req.user;
     const userId = userData.userData._id;
-    console.log("first", userData);
-    console.log("Data", userId);
-    const { currentPassword, newPassword } = req.body;
+    console.log("User Data:", userData);
+    console.log("User ID:", userId);
 
     // Ensure both currentPassword and newPassword are provided
     if (!currentPassword || !newPassword) {
@@ -201,7 +204,7 @@ router.post("/profile/password", jsonAuthMiddleware, async (req, res) => {
 
     // Compare the provided currentPassword with the user's actual password
     if (!(await user.comparePassword(currentPassword))) {
-      return res.status(401).json({ error: "Invalid username or password" });
+      return res.status(401).json({ error: "Invalid current password" });
     }
 
     // Update the user's password and save
@@ -211,9 +214,36 @@ router.post("/profile/password", jsonAuthMiddleware, async (req, res) => {
     console.log("Password Updated Successfully");
     res.status(200).json({ message: "Password Updated" });
   } catch (error) {
-    console.error("Error on saving data", error);
+    console.error("Error while updating password:", error);
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
 
+router.put("/updated-user", jsonAuthMiddleware, async (req, res) => {
+  try {
+    const userId = req.user.userData._id;
+    const updatedUserData = req.body;
+    console.log("userId", userId);
+    console.log("updatedUserData", updatedUserData);
+    // Check if file was uploaded and add its path to updatedUserData
+
+    const response = await User.findByIdAndUpdate(userId, updatedUserData, {
+      new: true,
+      runValidators: true,
+    });
+
+    if (!response) {
+      return res.status(404).json({ success: false, error: "User Not Found" });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: response,
+      message: "User updated successfully",
+    });
+  } catch (error) {
+    console.error("Error updating User:", error);
+    res.status(500).json({ success: false, error: "Internal Server Error" });
+  }
+});
 module.exports = router;
