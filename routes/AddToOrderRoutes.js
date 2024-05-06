@@ -6,13 +6,17 @@ const { jsonAuthMiddleware } = require("../authorization/auth");
 
 router.post("/add-order", jsonAuthMiddleware, async (req, res) => {
   try {
+    // Extract user ID from the request (assuming it's included in the JWT payload)
+    const userId = req.user.userData._id; // Assuming user ID is stored in req.user.id
+    console.log(userId);
+    console.log("req.user", req.user);
+
     // Extract order details from the request body
     const { id, quantity } = req.body;
     console.log(quantity);
     // Fetch food type details based on the id
     const foodType = await FoodType.findById(id);
     if (!foodType) {
-      6;
       return res.status(404).json({ message: "Food type not found" });
     }
 
@@ -36,12 +40,13 @@ router.post("/add-order", jsonAuthMiddleware, async (req, res) => {
       quantity: quantity,
     };
 
-    // Create a new order instance
+    // Create a new order instance and associate it with the user
     const newOrder = new Order({
+      user: userId, // Associate the order with the user
       items: [orderItem],
       total: totalPrice,
     });
-
+    console.log("newOrder", newOrder);
     // Save the order to the database
     await newOrder.save();
 
@@ -55,16 +60,42 @@ router.post("/add-order", jsonAuthMiddleware, async (req, res) => {
   }
 });
 
-// GET request to retrieve all orders
+// GET request to retrieve orders for the logged-in user
 router.get("/get-order", jsonAuthMiddleware, async (req, res) => {
   try {
-    const data = await Order.find();
-    res.status(200).json(data);
+    console.log("req.user", req.user);
+    console.log("req.user.userdata", req.user.userData);
+    console.log("req.user.userdata._id", req.user.userData._id);
+    // Check if req.user exists and contains userdata
+    if (!req.user || !req.user.userData || !req.user.userData._id) {
+      return res
+        .status(401)
+        .json({ message: "User data not found in request" });
+    }
+
+    const userId = req.user.userData._id; // Assuming user ID is stored in req.user.userdata.id
+    console.log(userId);
+
+    // Retrieve orders associated with the logged-in user
+    const userOrders = await Order.find({ user: userId });
+
+    res.status(200).json(userOrders);
   } catch (error) {
-    console.error("Error Getting on Order :", error);
+    console.error("Error getting user orders:", error);
     res.status(500).json({ message: "Internal Error" });
   }
 });
+
+// GET request to retrieve all orders
+// router.get("/get-order", jsonAuthMiddleware, async (req, res) => {
+//   try {
+//     const data = await Order.find();
+//     res.status(200).json(data);
+//   } catch (error) {
+//     console.error("Error Getting on Order :", error);
+//     res.status(500).json({ message: "Internal Error" });
+//   }
+// });
 
 // PUT request to update an order by ID
 router.put("/update-order/:orderId", jsonAuthMiddleware, async (req, res) => {

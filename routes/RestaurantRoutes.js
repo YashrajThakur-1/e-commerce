@@ -44,7 +44,7 @@ const handleUploads = (req, res, next) => {
 router.post(
   "/add-RestaurantPartner",
   handleUploads,
-  jsonAuthMiddleware,
+  // jsonAuthMiddleware,
   async (req, res) => {
     try {
       console.log("Request body:", req.body);
