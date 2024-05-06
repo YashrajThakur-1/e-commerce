@@ -2,9 +2,9 @@ const express = require("express");
 const router = express.Router();
 const Order = require("../model/AddToOrder");
 const FoodType = require("../model/FoodtypeSchema");
+const { jsonAuthMiddleware } = require("../authorization/auth");
 
-// POST request to add a new order
-router.post("/add-order", async (req, res) => {
+router.post("/add-order", jsonAuthMiddleware, async (req, res) => {
   try {
     // Extract order details from the request body
     const { id, quantity } = req.body;
@@ -56,7 +56,7 @@ router.post("/add-order", async (req, res) => {
 });
 
 // GET request to retrieve all orders
-router.get("/get-order", async (req, res) => {
+router.get("/get-order", jsonAuthMiddleware, async (req, res) => {
   try {
     const data = await Order.find();
     res.status(200).json(data);
@@ -67,7 +67,7 @@ router.get("/get-order", async (req, res) => {
 });
 
 // PUT request to update an order by ID
-router.put("/update-order/:orderId", async (req, res) => {
+router.put("/update-order/:orderId", jsonAuthMiddleware, async (req, res) => {
   try {
     const { orderId } = req.params;
     const { quantity } = req.body;
@@ -102,23 +102,27 @@ router.put("/update-order/:orderId", async (req, res) => {
 });
 
 // DELETE request to cancel an order by ID
-router.delete("/cancel-order/:orderId", async (req, res) => {
-  try {
-    const { orderId } = req.params;
+router.delete(
+  "/cancel-order/:orderId",
+  jsonAuthMiddleware,
+  async (req, res) => {
+    try {
+      const { orderId } = req.params;
 
-    // Find the order by ID and delete it
-    const deletedOrder = await Order.findByIdAndDelete(orderId);
-    if (!deletedOrder) {
-      return res.status(404).json({ message: "Order not found" });
+      // Find the order by ID and delete it
+      const deletedOrder = await Order.findByIdAndDelete(orderId);
+      if (!deletedOrder) {
+        return res.status(404).json({ message: "Order not found" });
+      }
+
+      res
+        .status(200)
+        .json({ message: "Order canceled successfully", order: deletedOrder });
+    } catch (error) {
+      console.error("Error canceling order:", error);
+      res.status(500).json({ message: "Failed to cancel order" });
     }
-
-    res
-      .status(200)
-      .json({ message: "Order canceled successfully", order: deletedOrder });
-  } catch (error) {
-    console.error("Error canceling order:", error);
-    res.status(500).json({ message: "Failed to cancel order" });
   }
-});
+);
 
 module.exports = router;

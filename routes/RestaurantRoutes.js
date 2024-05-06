@@ -110,7 +110,7 @@ router.post(
     }
   }
 );
-router.post("/get-restaurant", jsonAuthMiddleware, async (req, res) => {
+router.post("/get-restaurantItem", jsonAuthMiddleware, async (req, res) => {
   try {
     const { offset, limit, search } = req.body; // Change 'page' to 'offset'
     const parsedOffset = parseInt(offset) || 0; // Default offset to 0 if not provided
