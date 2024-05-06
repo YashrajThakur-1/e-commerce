@@ -30,6 +30,7 @@ router.post("/add-order", async (req, res) => {
     const orderItem = {
       name: foodType.name,
       image: foodType.image,
+      foodtype: foodType.foodtype,
       description: foodType.description,
       price: foodType.price,
       quantity: quantity,

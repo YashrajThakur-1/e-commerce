@@ -1,72 +1,116 @@
 const express = require("express");
 const router = express.Router();
-const path = require("path");
 const multer = require("multer");
+const path = require("path");
 const Restaurant = require("../model/RestuarantSchema");
 const { jsonAuthMiddleware } = require("../authorization/auth");
 
-// Serve static files from the "public" directory
-router.use(express.static("public"));
-
-// Multer storage configuration
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, "public");
-  },
-  filename: function (req, file, cb) {
-    cb(
-      null,
-      file.fieldname + "-" + Date.now() + path.extname(file.originalname)
-    );
-  },
+// Create Multer instances for 'images' and 'imageUrl' fields
+const upload = multer({
+  storage: multer.diskStorage({
+    destination: function (req, file, cb) {
+      if (file.fieldname === "images" || file.fieldname === "imageUrl") {
+        cb(null, "public");
+      } else {
+        cb(new Error("Unexpected field"));
+      }
+    },
+    filename: function (req, file, cb) {
+      cb(
+        null,
+        file.fieldname + "-" + Date.now() + path.extname(file.originalname)
+      );
+    },
+  }),
 });
 
-const upload = multer({ storage: storage }).array("image", 5); // '5' is the max count of images
+// Middleware function to handle image uploads for 'images' and 'imageUrl' fields
+const handleUploads = (req, res, next) => {
+  upload.any()(req, res, (err) => {
+    if (err instanceof multer.MulterError) {
+      // A Multer error occurred when uploading
+      console.error("Multer error:", err);
+      return res.status(500).json({ error: "Upload failed" });
+    } else if (err) {
+      // An unknown error occurred
+      console.error("Unknown error:", err);
+      return res.status(500).json({ error: "Internal Server Error" });
+    }
+    console.log("Upload successful");
+    next();
+  });
+};
 
-// Route for adding a new restaurant
-// Route for adding a new restaurant
-router.post("/add-RestaurantPartner", upload, async (req, res) => {
-  try {
-    const {
-      available,
-      location,
-      rating,
-      deliveryType,
-      time,
-      foodtype,
-      restaurantPartnerName,
-    } = req.body;
-    console.log("req.body", req.body);
-    console.log("req.files", req.files);
-    // Get the filenames of the uploaded images
-    const images = req.files.map((file) => file.filename);
-    console.log("first", images);
-    // Create a new Restaurant instance
-    const newRestaurant = new Restaurant({
-      images: images, // Ensure to pass the correct field name here
-      available,
-      location,
-      rating,
-      deliveryType,
-      time,
-      foodtype,
-      restaurantPartnerName,
-    });
-    // Save the new Restaurant to the database
-    const addRestaurant = await newRestaurant.save();
-    // Return success response with the added Restaurant data
-    res.status(200).json({
-      message: "Restaurant Item added Successfully",
-      success: true,
-    });
-  } catch (error) {
-    console.error("Error adding Restaurant:", error);
-    res.status(500).json({ msg: "Internal Server Error" });
+router.post(
+  "/add-RestaurantPartner",
+  handleUploads,
+  jsonAuthMiddleware,
+  async (req, res) => {
+    try {
+      console.log("Request body:", req.body);
+
+      // Extract form data from the request body
+      const {
+        available,
+        location,
+        rating,
+        deliveryType,
+        time,
+        restaurantPartnerName,
+        foodItems, // Assuming the array of food items contains objects with 'name' and 'imageUrl'
+      } = req.body;
+
+      // Check if foodItems is an array
+      if (!Array.isArray(foodItems)) {
+        throw new Error("foodItems should be an array");
+      }
+
+      // Get the filenames of the uploaded images for imageUrl
+      const imageUrls = req.files
+        .filter((file) => file.fieldname === "imageUrl")
+        .map((file) => file.filename);
+      console.log("Image URL filenames:", imageUrls);
+
+      // Create new menu items with image filenames
+      const menuItems = foodItems.map((item, index) => ({
+        name: item.name,
+        imageUrl: imageUrls[index], // Use corresponding imageUrl for each item
+      }));
+      console.log("menuItems", menuItems);
+
+      // Get the filenames of the uploaded images for images field
+      const images = req.files
+        .filter((file) => file.fieldname === "images")
+        .map((file) => file.filename);
+      console.log("Images filenames:", images);
+
+      // Create a new Restaurant instance with form data and menu items
+      const newRestaurant = new Restaurant({
+        images,
+        available,
+        location,
+        rating,
+        deliveryType,
+        time,
+        restaurantPartnerName,
+        foodtype: menuItems,
+      });
+
+      // Save the new Restaurant to the database
+      await newRestaurant.save();
+
+      // Return success response
+      res.status(200).json({
+        message: "Restaurant Item added Successfully",
+        success: true,
+      });
+    } catch (error) {
+      console.error("Error adding Restaurant:", error);
+      res.status(500).json({ msg: "Internal Server Error" });
+    }
   }
-});
-
-// Route for retrieving all restaurant items
-router.post("/get-restaurantItem", async (req, res) => {
+);
+router.post("/get-restaurant", jsonAuthMiddleware, async (req, res) => {
   try {
     const { offset, limit, search } = req.body; // Change 'page' to 'offset'
     const parsedOffset = parseInt(offset) || 0; // Default offset to 0 if not provided
@@ -78,7 +122,7 @@ router.post("/get-restaurantItem", async (req, res) => {
         $or: [
           { restaurantPartnerName: regex },
           { deliveryType: regex },
-          { foodtype: regex },
+          { location: regex },
         ],
       };
     }
@@ -116,101 +160,17 @@ router.post("/get-restaurantItem", async (req, res) => {
   }
 });
 
-// Route for retrieving details of a specific restaurant item
-router.get("/detail-restaurantItem/:id", async (req, res) => {
+router.get("/detail-restaurant/:id", jsonAuthMiddleware, async (req, res) => {
   try {
     const { id } = req.params;
-    const restaurant = await Restaurant.findById(id);
-    if (!restaurant) {
+    const data = await Restaurant.findById(id);
+    if (!data) {
       return res.status(404).json({ msg: "Restaurant not found" });
     }
-    res.status(200).json({ data: restaurant, success: true });
+    res.status(200).json({ data, success: true });
   } catch (error) {
-    console.error("Error retrieving Restaurant:", error);
+    console.error("Error retrieving Feature:", error);
     res.status(500).json({ msg: "Internal Server Error" });
   }
 });
-
 module.exports = router;
-// const express = require("express");
-// const router = express.Router();
-// // const Restaurant = require("../model/restaurant");
-// const multer = require("multer");
-// const path = require("path");
-// const Restaurant = require("../model/RestuarantSchema");
-
-// // Set up Multer storage configuration
-// const storage = multer.diskStorage({
-//   destination: function (req, file, cb) {
-//     cb(null, "public"); // Save images in the "public/images" directory
-//   },
-//   filename: function (req, file, cb) {
-//     // Generate a unique filename by appending current timestamp and original extension
-//     cb(
-//       null,
-//       file.fieldname + "-" + Date.now() + path.extname(file.originalname)
-//     );
-//   },
-// });
-
-// // Create Multer instance with the configured storage
-// const upload = multer({ storage: storage });
-
-// // Route for adding a restaurant partner
-// router.post(
-//   "/add-RestaurantPartner",
-//   upload.array("images", 5),
-//   async (req, res) => {
-//     try {
-//       // Extract form data from the request body
-//       const {
-//         available,
-//         location,
-//         rating,
-//         deliveryType,
-//         time,
-//         restaurantPartnerName,
-//         foodtype,
-//       } = req.body;
-
-//       // Get the filenames of the uploaded images
-//       const images = req.files.map((file) => file.filename);
-
-//       // Create new menu items with image filenames
-//       const menuItems = foodtype.map((item) => {
-//         return {
-//           name: item.name,
-//           description: item.description,
-//           price: item.price,
-//           imageUrl: item.imageUrl ? item.imageUrl : images.shift(), // Use provided imageUrl or uploaded image
-//         };
-//       });
-
-//       // Create a new Restaurant instance with form data and menu items
-//       const newRestaurant = new Restaurant({
-//         images,
-//         available,
-//         location,
-//         rating,
-//         deliveryType,
-//         time,
-//         restaurantPartnerName,
-//         foodtype: menuItems,
-//       });
-
-//       // Save the new Restaurant to the database
-//       await newRestaurant.save();
-
-//       // Return success response
-//       res.status(200).json({
-//         message: "Restaurant Item added Successfully",
-//         success: true,
-//       });
-//     } catch (error) {
-//       console.error("Error adding Restaurant:", error);
-//       res.status(500).json({ msg: "Internal Server Error" });
-//     }
-//   }
-// );
-
-// module.exports = router;

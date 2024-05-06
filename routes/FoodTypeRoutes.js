@@ -6,6 +6,7 @@ const multer = require("multer");
 
 const { jsonAuthMiddleware } = require("../authorization/auth");
 const Food = require("../model/FoodtypeSchema");
+const Restaurant = require("../model/RestuarantSchema");
 // const featureValidationSchema = require("../validate/validation");
 
 // Serve static files from the "public" directory
@@ -26,8 +27,9 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage: storage }).single("image");
 
-router.post("/add-fooditem", upload, async (req, res) => {
+router.post("/add-fooditem/:id", upload, async (req, res) => {
   try {
+    const { id } = req.body;
     // Validate request body
     // Check if file is uploaded
     if (!req.file) {
@@ -35,7 +37,7 @@ router.post("/add-fooditem", upload, async (req, res) => {
     }
 
     // Extract data from request body
-    const { name, description, foodtype, price, restaurantId } = req.body;
+    const { name, description, foodtype, price } = req.body;
 
     // Get the filename of the uploaded image
     const image = req.file.filename;
@@ -47,11 +49,11 @@ router.post("/add-fooditem", upload, async (req, res) => {
       description,
       foodtype,
       price,
-      restaurant: restaurantId, // Add restaurant ID to the food item
+      restaurant: id, // Add restaurant ID to the food item
     });
 
     // Save the new feature to the database
-    const addFeature = await newFeature.save();
+    await newFeature.save();
 
     // Return success response with the added feature data
     res

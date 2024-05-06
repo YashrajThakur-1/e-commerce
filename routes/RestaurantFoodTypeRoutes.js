@@ -1,5 +1,4 @@
 const express = require("express");
-const restaurant = require("../model/RestuarantSchema");
 const router = express.Router();
 const path = require("path");
 const multer = require("multer");
@@ -27,7 +26,7 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage: storage }).single("image");
 
-router.post("/add-foodtype", upload, async (req, res) => {
+router.post("/add-foodtype", jsonAuthMiddleware, upload, async (req, res) => {
   try {
     // Validate request body
     // Check if file is uploaded
@@ -62,7 +61,7 @@ router.post("/add-foodtype", upload, async (req, res) => {
   }
 });
 
-router.get("/get-foodtype", async (req, res) => {
+router.get("/get-foodtype", jsonAuthMiddleware, async (req, res) => {
   try {
     const data = await FoodType.find();
     res.status(200).json({ data: data, success: true });
@@ -71,21 +70,25 @@ router.get("/get-foodtype", async (req, res) => {
     res.status(500).json({ msg: "Internal Server Error" });
   }
 });
-router.get("/detail-Foodtype/:restaurantId", async (req, res) => {
-  try {
-    const { restaurantId } = req.params;
-    const foodTypes = await FoodType.find({ restaurant: restaurantId });
-    if (!foodTypes || foodTypes.length === 0) {
-      return res
-        .status(404)
-        .json({ msg: "Food types not found for this restaurant" });
+router.get(
+  "/detail-Foodtype/:restaurantId",
+  jsonAuthMiddleware,
+  async (req, res) => {
+    try {
+      const { restaurantId } = req.params;
+      const foodTypes = await FoodType.find({ restaurant: restaurantId });
+      if (!foodTypes || foodTypes.length === 0) {
+        return res
+          .status(404)
+          .json({ msg: "Food types not found for this restaurant" });
+      }
+      res.status(200).json({ data: foodTypes, success: true });
+    } catch (error) {
+      console.error("Error retrieving food types:", error);
+      res.status(500).json({ msg: "Internal Server Error" });
     }
-    res.status(200).json({ data: foodTypes, success: true });
-  } catch (error) {
-    console.error("Error retrieving food types:", error);
-    res.status(500).json({ msg: "Internal Server Error" });
   }
-});
+);
 router.get(
   "/get-food-type-by-restaurant/:restaurantId/:foodtype",
   async (req, res) => {
