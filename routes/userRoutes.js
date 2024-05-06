@@ -43,9 +43,10 @@ router.post("/signup", validate(signupSchema), async (req, res) => {
     }
     const savedUser = await data.save();
     console.log("USer Registererd Successfull");
+    const token = generateToken(savedUser);
     res
       .status(200)
-      .json({ message: "User Registered Successfully", status: true });
+      .json({ message: "User Registered Successfully", status: true, token });
   } catch (error) {
     console.error("Error on saving data", error);
     res.status(500).json({ error: "Internal Server Error", status: false });
