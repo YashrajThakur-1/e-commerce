@@ -164,20 +164,6 @@ router.post("/get-restaurantItem", jsonAuthMiddleware, async (req, res) => {
   }
 });
 
-router.get("/detail-restaurant/:id", jsonAuthMiddleware, async (req, res) => {
-  try {
-    const { id } = req.params;
-    const data = await Restaurant.findById(id);
-    if (!data) {
-      return res.status(404).json({ msg: "Restaurant not found" });
-    }
-    res.status(200).json({ data, success: true });
-  } catch (error) {
-    console.error("Error retrieving Feature:", error);
-    res.status(500).json({ msg: "Internal Server Error" });
-  }
-});
-
 router.get("/isPopular", async (req, res) => {
   try {
     const popularRestaurant = await Restaurant.find({ isPopular: true });
@@ -191,9 +177,9 @@ router.get("/isPopular", async (req, res) => {
   }
 });
 
-router.get("/isFeature", async (req, res) => {
-  const offset = parseInt(req.body.offset) || 0; // Default to offset of 0 if no offset parameter is provided
-  const limit = parseInt(req.body.limit) || 10; // Default to limit of 10 results per page
+router.post("/isFeature", async (req, res) => {
+  const offset = parseInt(req.body) || 0; // Default to offset of 0 if no offset parameter is provided
+  const limit = parseInt(req.body) || 10; // Default to limit of 10 results per page
 
   try {
     const count = await Restaurant.countDocuments({ isFeature: true });
@@ -239,4 +225,26 @@ router.delete(
     }
   }
 );
+router.get("/get-foodtypes/:id", jsonAuthMiddleware, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const restaurant = await Restaurant.findById(id);
+    if (!restaurant) {
+      return res.status(404).json({ msg: "Restaurant not found" });
+    }
+
+    // Extracting only the foodtype information
+    const foodtypes = restaurant.foodtype.map(({ name, imageUrl, _id }) => ({
+      name,
+      imageUrl,
+      _id,
+    }));
+
+    res.status(200).json({ foodtypes, success: true });
+  } catch (error) {
+    console.error("Error retrieving foodtypes:", error);
+    res.status(500).json({ msg: "Internal Server Error" });
+  }
+});
+
 module.exports = router;

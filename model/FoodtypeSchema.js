@@ -7,6 +7,10 @@ const foodtypeSchem = new Schema({
   description: String,
   foodtype: String,
   price: Number,
+  isFeature: {
+    type: Boolean,
+    default: false,
+  },
   restaurant: {
     type: Schema.Types.ObjectId,
     ref: "Restaurant",

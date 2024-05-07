@@ -39,7 +39,7 @@ router.post("/add-fooditem/:id", upload, async (req, res) => {
     if (!restaurant) {
       return res.status(404).json({ error: "Restaurant not found" });
     }
-    const { name, description, foodtype, price } = req.body;
+    const { name, description, foodtype, price, isFeature } = req.body;
 
     // Check if the provided foodtype exists in the restaurant's food types
     const isValidFoodType = restaurant.foodtype.find(
@@ -59,6 +59,7 @@ router.post("/add-fooditem/:id", upload, async (req, res) => {
       description,
       foodtype,
       price,
+      isFeature,
       restaurant: id, // Add restaurant ID to the food item
     });
 
@@ -239,6 +240,33 @@ router.delete("/delete-fooditem/:id", async (req, res) => {
       .json({ message: "Food item deleted successfully", success: true });
   } catch (error) {
     console.error("Error deleting food item:", error.message);
+    res.status(500).json({ msg: "Internal Server Error" });
+  }
+});
+
+router.post("/isFeaturefoodItem", async (req, res) => {
+  const offset = parseInt(req.body) || 0; // Default to offset of 0 if no offset parameter is provided
+  const limit = parseInt(req.body) || 10; // Default to limit of 10 results per page
+
+  try {
+    const count = await Food.countDocuments({ isFeature: true });
+
+    const popularFoods = await Food.find({ isFeature: true })
+      .skip(offset)
+      .limit(limit);
+
+    if (popularFoods.length === 0) {
+      return res.status(404).json({ msg: "No featured Foods found" });
+    }
+
+    res.status(200).json({
+      totalCount: count,
+      offset,
+      limit,
+      Foods: popularFoods,
+    });
+  } catch (error) {
+    console.error("Error retrieving featured Foods:", error);
     res.status(500).json({ msg: "Internal Server Error" });
   }
 });
