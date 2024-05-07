@@ -49,6 +49,39 @@ router.get("/getlocations", jsonAuthMiddleware, async (req, res) => {
   }
 });
 
+router.put(
+  "/updatelocation/:locationId",
+  jsonAuthMiddleware,
+  async (req, res) => {
+    try {
+      const { locationId } = req.params;
+      const { location } = req.body;
+
+      // Find the location by ID
+      let existingLocation = await locationModel.findById(locationId);
+
+      // Check if the location exists
+      if (!existingLocation) {
+        return res.status(404).json({ error: "Location not found" });
+      }
+
+      // Update the location data
+      existingLocation.location = location;
+
+      // Save the updated location data
+      await existingLocation.save();
+
+      // Send a success response
+      res
+        .status(200)
+        .json({ message: "Location updated successfully", success: true });
+    } catch (error) {
+      // Handle errors
+      console.error("Error on updating location", error);
+      res.status(500).json({ error: "Internal Server Error", status: false });
+    }
+  }
+);
 // Route to get restaurants matching the location of the current user
 router.get(
   "/match-location-get-restaurant",

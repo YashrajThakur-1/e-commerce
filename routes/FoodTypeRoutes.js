@@ -76,16 +76,6 @@ router.post("/add-fooditem/:id", upload, async (req, res) => {
   }
 });
 
-router.get("/get-foodtype-data", async (req, res) => {
-  try {
-    const data = await Food.find();
-    res.status(200).json({ data: data, success: true });
-  } catch (error) {
-    console.error("Error adding Feature:", error.message);
-    res.status(500).json({ msg: "Internal Server Error" });
-  }
-});
-
 router.post("/get-foodtype-data", jsonAuthMiddleware, async (req, res) => {
   try {
     const { offset, limit, search } = req.body;
@@ -244,30 +234,40 @@ router.delete("/delete-fooditem/:id", async (req, res) => {
   }
 });
 
-router.post("/isFeaturefoodItem", async (req, res) => {
-  const offset = parseInt(req.body) || 0; // Default to offset of 0 if no offset parameter is provided
-  const limit = parseInt(req.body) || 10; // Default to limit of 10 results per page
+router.post("/isFeaturefoodItem/:restaurant", async (req, res) => {
+  const offset = parseInt(req.body.offset) || 0;
+  const limit = parseInt(req.body.limit) || 10;
+  const restaurantId = req.params.restaurant;
 
   try {
-    const count = await Food.countDocuments({ isFeature: true });
-
-    const popularFoods = await Food.find({ isFeature: true })
+    const count = await Food.countDocuments({
+      isFeature: true,
+      restaurant: restaurantId,
+    });
+    console.log(count);
+    const featuredFoods = await Food.find({
+      isFeature: true,
+      restaurant: restaurantId,
+    })
       .skip(offset)
       .limit(limit);
 
-    if (popularFoods.length === 0) {
-      return res.status(404).json({ msg: "No featured Foods found" });
+    if (featuredFoods.length === 0) {
+      return res
+        .status(404)
+        .json({ msg: "No featured foods found for this restaurant" });
     }
 
     res.status(200).json({
       totalCount: count,
       offset,
       limit,
-      Foods: popularFoods,
+      foods: featuredFoods,
     });
   } catch (error) {
-    console.error("Error retrieving featured Foods:", error);
+    console.error("Error retrieving featured foods:", error);
     res.status(500).json({ msg: "Internal Server Error" });
   }
 });
+
 module.exports = router;
