@@ -35,16 +35,29 @@ router.post("/add-fooditem/:id", upload, async (req, res) => {
     if (!req.file) {
       return res.status(400).json({ error: "Image file is required" });
     }
-
-    // Extract data from request body
+    const restaurant = await Restaurant.findById(id);
+    if (!restaurant) {
+      return res.status(404).json({ error: "Restaurant not found" });
+    }
     const { name, description, foodtype, price } = req.body;
-    console.log("req.params", req.body);
+
+    // Check if the provided foodtype exists in the restaurant's food types
+    const isValidFoodType = restaurant.foodtype.find(
+      (foodType) => foodType.name === foodtype
+    );
+    if (!isValidFoodType) {
+      return res.status(400).json({ error: "Invalid food type" });
+    }
+
+    if (!isValidFoodType) {
+      return res.status(400).json({ error: "Invalid food type" });
+    }
 
     // Get the filename of the uploaded image
     const image = req.file.filename;
 
-    // Create a new feature instance
-    const newFeature = new Food({
+    // Create a new food item instance
+    const newFoodItem = new Food({
       image,
       name,
       description,
@@ -52,16 +65,16 @@ router.post("/add-fooditem/:id", upload, async (req, res) => {
       price,
       restaurant: id, // Add restaurant ID to the food item
     });
-    console.log("newFeature", newFeature);
-    // Save the new feature to the database
-    await newFeature.save();
 
-    // Return success response with the added feature data
+    // Save the new food item to the database
+    await newFoodItem.save();
+
+    // Return success response with the added food item data
     res
       .status(200)
-      .json({ message: "Food Partner added Successfully", success: true });
+      .json({ message: "Food item added successfully", success: true });
   } catch (error) {
-    console.error("Error adding Feature:", error.message);
+    console.error("Error adding food item:", error.message);
     res.status(500).json({ msg: "Internal Server Error" });
   }
 });
