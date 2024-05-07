@@ -177,22 +177,31 @@ router.get("/profile", jsonAuthMiddleware, async (req, res) => {
   }
 });
 
-router.post("/change-password", jsonAuthMiddleware, async (req, res) => {
+router.put("/change-password", jsonAuthMiddleware, async (req, res) => {
   try {
-    const { currentPassword, newPassword } = req.body;
+    const { currentPassword, newPassword, confirmPassword } = req.body;
 
     console.log("Current Password:", currentPassword);
     console.log("New Password:", newPassword);
+    console.log("Confirm Password:", confirmPassword);
+
     const userData = req.user;
     const userId = userData.userData._id;
     console.log("User Data:", userData);
     console.log("User ID:", userId);
 
-    // Ensure both currentPassword and newPassword are provided
-    if (!currentPassword || !newPassword) {
+    // Ensure currentPassword, newPassword, and confirmPassword are provided
+    if (!currentPassword || !newPassword || !confirmPassword) {
       return res
         .status(400)
-        .json({ error: "Both currentPassword and newPassword are required" });
+        .json({ error: "All password fields are required" });
+    }
+
+    // Check if newPassword and confirmPassword match
+    if (newPassword !== confirmPassword) {
+      return res
+        .status(400)
+        .json({ error: "New password and confirm password do not match" });
     }
 
     const user = await User.findById(userId);
