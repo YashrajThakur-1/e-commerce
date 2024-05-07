@@ -29,7 +29,7 @@ const upload = multer({ storage: storage }).single("image");
 
 router.post("/add-fooditem/:id", upload, async (req, res) => {
   try {
-    const { id } = req.body;
+    const { id } = req.params;
     // Validate request body
     // Check if file is uploaded
     if (!req.file) {
