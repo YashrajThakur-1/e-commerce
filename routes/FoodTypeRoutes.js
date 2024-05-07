@@ -88,6 +88,52 @@ router.get("/get-foodtype-data", async (req, res) => {
     res.status(500).json({ msg: "Internal Server Error" });
   }
 });
+
+router.post("/get-foodtype-data", jsonAuthMiddleware, async (req, res) => {
+  try {
+    const { offset, limit, search } = req.body;
+    const parsedOffset = parseInt(offset) || 0;
+    const parsedLimit = parseInt(limit) || 10;
+    let searchQuery = {};
+    if (search) {
+      const regex = new RegExp(search, "i"); // Case-insensitive search
+      searchQuery = {
+        $or: [{ price: regex }, { foodtype: regex }, { name: regex }],
+      };
+    }
+
+    console.log("Offset:", parsedOffset);
+    console.log("Limit:", parsedLimit);
+
+    const data = await Food.find(searchQuery)
+      .limit(parsedLimit)
+      .skip(parsedOffset) // Use offset instead of startIndex
+      .exec();
+
+    const totalCount = await Food.countDocuments(searchQuery);
+
+    const pagination = {};
+
+    if (parsedOffset + parsedLimit < totalCount) {
+      pagination.next = {
+        offset: parsedOffset + parsedLimit, // Update offset for next page
+        limit: parsedLimit,
+      };
+    }
+
+    if (parsedOffset > 0) {
+      pagination.prev = {
+        offset: Math.max(parsedOffset - parsedLimit, 0), // Ensure offset doesn't go negative
+        limit: parsedLimit,
+      };
+    }
+
+    res.status(200).json({ data: data, totalCount: totalCount });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
 router.get("/detail-Food-list/:id", async (req, res) => {
   try {
     const { id } = req.params;
