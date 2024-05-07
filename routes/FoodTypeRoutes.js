@@ -38,7 +38,7 @@ router.post("/add-fooditem/:id", upload, async (req, res) => {
 
     // Extract data from request body
     const { name, description, foodtype, price } = req.body;
-    console.log("req.params", req.params);
+    console.log("req.params", req.body);
 
     // Get the filename of the uploaded image
     const image = req.file.filename;
