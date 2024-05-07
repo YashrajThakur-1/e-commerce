@@ -49,10 +49,6 @@ router.post("/add-fooditem/:id", upload, async (req, res) => {
       return res.status(400).json({ error: "Invalid food type" });
     }
 
-    if (!isValidFoodType) {
-      return res.status(400).json({ error: "Invalid food type" });
-    }
-
     // Get the filename of the uploaded image
     const image = req.file.filename;
 

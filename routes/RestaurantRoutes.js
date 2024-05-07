@@ -4,7 +4,6 @@ const multer = require("multer");
 const path = require("path");
 const Restaurant = require("../model/RestuarantSchema");
 const { jsonAuthMiddleware } = require("../authorization/auth");
-const fs = require("fs"); // Required for file system operations
 
 // Create Multer instances for 'images' and 'imageUrl' fields
 const upload = multer({
@@ -193,14 +192,28 @@ router.get("/isPopular", async (req, res) => {
 });
 
 router.get("/isFeature", async (req, res) => {
+  const offset = parseInt(req.body.offset) || 0; // Default to offset of 0 if no offset parameter is provided
+  const limit = parseInt(req.body.limit) || 10; // Default to limit of 10 results per page
+
   try {
-    const popularRestaurant = await Restaurant.find({ isFeature: true });
-    if (!popularRestaurant) {
-      res.status(404).json({ msg: "Sorry No one Feature restaurant " });
+    const count = await Restaurant.countDocuments({ isFeature: true });
+
+    const popularRestaurants = await Restaurant.find({ isFeature: true })
+      .skip(offset)
+      .limit(limit);
+
+    if (popularRestaurants.length === 0) {
+      return res.status(404).json({ msg: "No featured restaurants found" });
     }
-    res.status(200).json(popularRestaurant);
+
+    res.status(200).json({
+      totalCount: count,
+      offset,
+      limit,
+      restaurants: popularRestaurants,
+    });
   } catch (error) {
-    console.error("Error retrieving Feature:", error);
+    console.error("Error retrieving featured restaurants:", error);
     res.status(500).json({ msg: "Internal Server Error" });
   }
 });
@@ -226,67 +239,4 @@ router.delete(
     }
   }
 );
-
-router.put("/update-restaurant/:id", jsonAuthMiddleware, async (req, res) => {
-  try {
-    const { id } = req.params;
-    const {
-      available,
-      location,
-      rating,
-      deliveryType,
-      time,
-      restaurantPartnerName,
-      foodItems,
-      isFeature,
-      isPopular,
-    } = req.body;
-
-    const restaurant = await Restaurant.findById(id);
-
-    if (!restaurant) {
-      return res.status(404).json({ msg: "Restaurant not found" });
-    }
-
-    // Update restaurant fields
-    restaurant.available = available;
-    restaurant.location = location;
-    restaurant.rating = rating;
-    restaurant.deliveryType = deliveryType;
-    restaurant.time = time;
-    restaurant.restaurantPartnerName = restaurantPartnerName;
-    restaurant.isFeature = isFeature;
-    restaurant.isPopular = isPopular;
-
-    // Handle image updates
-    if (req.files) {
-      // Remove existing images associated with the restaurant
-      restaurant.images.forEach((image) => {
-        fs.unlinkSync(`public/${image}`); // Delete file from file system
-      });
-
-      // Get the filenames of the uploaded images for images field
-      const newImages = req.files
-        .filter((file) => file.fieldname === "images")
-        .map((file) => file.filename);
-
-      // Update restaurant's image field
-      restaurant.images = newImages;
-    }
-
-    // Update food items
-    restaurant.foodtype = foodItems.map((item, index) => ({
-      name: item.name,
-      imageUrl: item.imageUrl,
-    }));
-
-    await restaurant.save();
-
-    res.status(200).json({ message: "Restaurant updated successfully" });
-  } catch (error) {
-    console.error("Error updating Restaurant:", error);
-    res.status(500).json({ msg: "Internal Server Error" });
-  }
-});
-
 module.exports = router;
