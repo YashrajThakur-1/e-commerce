@@ -96,8 +96,8 @@ router.post(
       const transporter = nodemailer.createTransport({
         service: "Gmail",
         auth: {
-          user: "yash.dicecoder105@gmail.com",
-          pass: "nfyveyqifyapvshl",
+          user: process.env.email,
+          pass: process.env.password,
         },
         tls: {
           rejectUnauthorized: false, // Ignore TLS verification
