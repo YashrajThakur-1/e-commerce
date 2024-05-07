@@ -38,6 +38,7 @@ router.post("/add-fooditem/:id", upload, async (req, res) => {
 
     // Extract data from request body
     const { name, description, foodtype, price } = req.body;
+    console.log("req.params", req.params);
 
     // Get the filename of the uploaded image
     const image = req.file.filename;
@@ -51,7 +52,7 @@ router.post("/add-fooditem/:id", upload, async (req, res) => {
       price,
       restaurant: id, // Add restaurant ID to the food item
     });
-
+    console.log("newFeature", newFeature);
     // Save the new feature to the database
     await newFeature.save();
 
