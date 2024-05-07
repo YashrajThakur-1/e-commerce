@@ -35,10 +35,19 @@ const restaurantSchema = new mongoose.Schema({
     enum: ["express", "free"],
     // required: true,
   },
+  isFeature: {
+    type: Boolean,
+    default: false,
+  },
+  isPopular: {
+    type: Boolean,
+    default: false,
+  },
   time: {
     type: String,
     // required: true,
   },
+
   foodtype: [menuItemSchema],
 });
 

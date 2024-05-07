@@ -8,7 +8,7 @@ const {
 } = require("../authorization/auth");
 const router = express.Router();
 const nodemailer = require("nodemailer");
-
+require("dotenv").config();
 // Import validation schemas
 const {
   signupSchema,
@@ -96,8 +96,8 @@ router.post(
       const transporter = nodemailer.createTransport({
         service: "Gmail",
         auth: {
-          user: process.env.email,
-          pass: process.env.password,
+          user: "yash.dicecoder105@gmail.com",
+          pass: "nfyveyqifyapvshl",
         },
         tls: {
           rejectUnauthorized: false, // Ignore TLS verification

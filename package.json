@@ -18,6 +18,7 @@
     "crypto": "^1.0.1",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
+    "firebase-admin": "^12.1.0",
     "joe": "^2.0.2",
     "joi": "^17.12.3",
     "jsonwebtoken": "^9.0.2",

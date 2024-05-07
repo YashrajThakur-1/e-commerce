@@ -4,6 +4,7 @@ const multer = require("multer");
 const path = require("path");
 const Restaurant = require("../model/RestuarantSchema");
 const { jsonAuthMiddleware } = require("../authorization/auth");
+const fs = require("fs"); // Required for file system operations
 
 // Create Multer instances for 'images' and 'imageUrl' fields
 const upload = multer({
@@ -57,7 +58,9 @@ router.post(
         deliveryType,
         time,
         restaurantPartnerName,
-        foodItems, // Assuming the array of food items contains objects with 'name' and 'imageUrl'
+        foodItems,
+        isFeature,
+        isPopular, // Assuming the array of food items contains objects with 'name' and 'imageUrl'
       } = req.body;
 
       // Check if foodItems is an array
@@ -94,6 +97,8 @@ router.post(
         time,
         restaurantPartnerName,
         foodtype: menuItems,
+        isFeature,
+        isPopular,
       });
 
       // Save the new Restaurant to the database
@@ -112,9 +117,9 @@ router.post(
 );
 router.post("/get-restaurantItem", jsonAuthMiddleware, async (req, res) => {
   try {
-    const { offset, limit, search } = req.body; // Change 'page' to 'offset'
-    const parsedOffset = parseInt(offset) || 0; // Default offset to 0 if not provided
-    const parsedLimit = parseInt(limit) || 10; // Default to limit of 10 if not provided
+    const { offset, limit, search } = req.body;
+    const parsedOffset = parseInt(offset) || 0;
+    const parsedLimit = parseInt(limit) || 10;
     let searchQuery = {};
     if (search) {
       const regex = new RegExp(search, "i"); // Case-insensitive search
@@ -173,4 +178,115 @@ router.get("/detail-restaurant/:id", jsonAuthMiddleware, async (req, res) => {
     res.status(500).json({ msg: "Internal Server Error" });
   }
 });
+
+router.get("/isPopular", async (req, res) => {
+  try {
+    const popularRestaurant = await Restaurant.find({ isPopular: true });
+    if (!popularRestaurant) {
+      res.status(404).json({ msg: "Sorry No one Popular restaurant " });
+    }
+    res.status(200).json(popularRestaurant);
+  } catch (error) {
+    console.error("Error retrieving Feature:", error);
+    res.status(500).json({ msg: "Internal Server Error" });
+  }
+});
+
+router.get("/isFeature", async (req, res) => {
+  try {
+    const popularRestaurant = await Restaurant.find({ isFeature: true });
+    if (!popularRestaurant) {
+      res.status(404).json({ msg: "Sorry No one Feature restaurant " });
+    }
+    res.status(200).json(popularRestaurant);
+  } catch (error) {
+    console.error("Error retrieving Feature:", error);
+    res.status(500).json({ msg: "Internal Server Error" });
+  }
+});
+
+router.delete(
+  "/delete-restaurant/:id",
+  jsonAuthMiddleware,
+  async (req, res) => {
+    try {
+      const { id } = req.params;
+      const restaurant = await Restaurant.findById(id);
+
+      if (!restaurant) {
+        return res.status(404).json({ msg: "Restaurant not found" });
+      }
+
+      await restaurant.remove();
+
+      res.status(200).json({ message: "Restaurant deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting Restaurant:", error);
+      res.status(500).json({ msg: "Internal Server Error" });
+    }
+  }
+);
+
+router.put("/update-restaurant/:id", jsonAuthMiddleware, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const {
+      available,
+      location,
+      rating,
+      deliveryType,
+      time,
+      restaurantPartnerName,
+      foodItems,
+      isFeature,
+      isPopular,
+    } = req.body;
+
+    const restaurant = await Restaurant.findById(id);
+
+    if (!restaurant) {
+      return res.status(404).json({ msg: "Restaurant not found" });
+    }
+
+    // Update restaurant fields
+    restaurant.available = available;
+    restaurant.location = location;
+    restaurant.rating = rating;
+    restaurant.deliveryType = deliveryType;
+    restaurant.time = time;
+    restaurant.restaurantPartnerName = restaurantPartnerName;
+    restaurant.isFeature = isFeature;
+    restaurant.isPopular = isPopular;
+
+    // Handle image updates
+    if (req.files) {
+      // Remove existing images associated with the restaurant
+      restaurant.images.forEach((image) => {
+        fs.unlinkSync(`public/${image}`); // Delete file from file system
+      });
+
+      // Get the filenames of the uploaded images for images field
+      const newImages = req.files
+        .filter((file) => file.fieldname === "images")
+        .map((file) => file.filename);
+
+      // Update restaurant's image field
+      restaurant.images = newImages;
+    }
+
+    // Update food items
+    restaurant.foodtype = foodItems.map((item, index) => ({
+      name: item.name,
+      imageUrl: item.imageUrl,
+    }));
+
+    await restaurant.save();
+
+    res.status(200).json({ message: "Restaurant updated successfully" });
+  } catch (error) {
+    console.error("Error updating Restaurant:", error);
+    res.status(500).json({ msg: "Internal Server Error" });
+  }
+});
+
 module.exports = router;
