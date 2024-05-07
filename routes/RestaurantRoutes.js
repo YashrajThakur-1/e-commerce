@@ -114,6 +114,21 @@ router.post(
     }
   }
 );
+
+router.get("/detail-restaurant/:id", jsonAuthMiddleware, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const data = await Restaurant.findById(id);
+    if (!data) {
+      return res.status(404).json({ msg: "Restaurant not found" });
+    }
+    res.status(200).json({ data, success: true });
+  } catch (error) {
+    console.error("Error retrieving Feature:", error);
+    res.status(500).json({ msg: "Internal Server Error" });
+  }
+});
+
 router.post("/get-restaurantItem", jsonAuthMiddleware, async (req, res) => {
   try {
     const { offset, limit, search } = req.body;
